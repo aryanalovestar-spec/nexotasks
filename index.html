@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="es" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>NexoTasks | Bitácora de Tareas</title>
+  
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;700&display=swap');
+    
+    body { 
+      font-family: 'Crimson Pro', serif; 
+      -webkit-tap-highlight-color: transparent; 
+      color: #3f3b39;
+      background-color: #fdf6e3;
+    }
+    
+    :root {
+      --nxt-crema: #fdf6e3;
+      --nxt-azul-washi: #88c0d0;
+      --nxt-azul-check: #a3be8c;
+      --nxt-borde: #3f3b39;
+    }
+    
+    .pet-container { position: fixed; bottom: 20%; left: 0; font-size: 3rem; pointer-events: none; z-index: 30; }
+    
+    @keyframes pet-fly { 
+      0% { transform: translateX(-100px) translateY(0px); opacity: 0; } 
+      10% { opacity: 1; } 
+      100% { transform: translateX(calc(100vw + 100px)) translateY(-50px); opacity: 0; } 
+    }
+
+    .cinta-washi {
+      position: absolute;
+      top: -15px;
+      left: 20px;
+      width: 100px;
+      height: 30px;
+      background-color: var(--nxt-azul-washi);
+      border: 2px solid var(--nxt-borde);
+      transform: rotate(-3deg);
+      z-index: 10;
+    }
+    
+    .check-btn {
+      width: 32px;
+      height: 32px;
+      border: 2px solid var(--nxt-borde);
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+    
+    .check-btn.checked {
+      background-color: var(--nxt-azul-check);
+    }
+  </style>
+</head>
+
+<body class="h-full flex flex-col overflow-hidden">
+
+  <div id="setup-modal" class="fixed inset-0 z-[100] bg-white flex items-center justify-center p-6">
+    <div class="max-w-md w-full text-center space-y-6 relative p-8 bg-[#fdf6e3] border-[#3f3b39] border-4 rounded-3xl">
+      <div class="cinta-washi"></div>
+      <h1 class="text-4xl font-bold">NexoTasks</h1>
+      <p class="text-sm opacity-70">Ingresa tu nombre para comenzar la bitácora</p>
+      <input type="text" id="setup-username" placeholder="Tu nombre" class="w-full px-4 py-3 border-2 border-[#3f3b39] rounded-xl text-center font-bold outline-none bg-white">
+      <button id="btn-finish-setup" class="w-full py-4 bg-[#88c0d0] text-white rounded-2xl font-bold border-2 border-[#3f3b39] shadow-[4px_4px_0_0_#3f3b39]">EMPEZAR BITÁCORA</button>
+    </div>
+  </div>
+
+  <header class="h-20 border-b-2 border-[#3f3b39] flex items-center justify-between px-4 shrink-0 bg-[#fdf6e3] z-50">
+    <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-[#3f3b39]">
+      <span id="coins-display" class="font-bold">0</span> <span>🌕</span>
+    </div>
+    <h1 class="text-2xl font-bold tracking-tight">NexoTasks</h1>
+    <div id="header-name" class="text-xs font-bold uppercase border-2 border-[#3f3b39] px-2 py-1 rounded-lg bg-white">Perfil</div>
+  </header>
+
+  <main class="flex-1 overflow-y-auto p-4 md:p-8">
+    <div class="max-w-xl mx-auto space-y-8">
+      <div class="bg-white rounded-2xl shadow-lg p-6 border-2 border-[#3f3b39]">
+        <div class="space-y-4">
+          <input type="text" id="task-input" placeholder="Escribe una nueva tarea..." class="w-full px-4 py-4 rounded-xl border-2 border-[#3f3b39] outline-none font-bold text-lg">
+          <button onclick="addTask()" class="w-full py-4 bg-[#88c0d0] text-white rounded-2xl font-bold border-2 border-[#3f3b39] shadow-[3px_3px_0_0_#3f3b39]">REGISTRAR TAREA 🌕</button>
+        </div>
+      </div>
+      
+      <div id="tasks-list" class="space-y-3 pb-10"></div>
+    </div>
+  </main>
+
+  <div id="pet-display"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, set, onValue, push, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    // Configuración desde tus capturas de pantalla
+    const firebaseConfig = {
+      apiKey: "AIzaSyDPTKgbttL8DbukqHhB8vE-5hEVE6A2v8M",
+      authDomain: "nexotasks.firebaseapp.com",
+      databaseURL: "https://nexotasks-default-rtdb.firebaseio.com",
+      projectId: "nexotasks",
+      storageBucket: "nexotasks.firebasestorage.app",
+      messagingSenderId: "821277921208",
+      appId: "1:821277921208:web:abbc7d0d2855eca671894d"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    let currentUser = localStorage.getItem('nxt_user') || '';
+    let coins = parseInt(localStorage.getItem('nxt_coins')) || 0;
+
+    if (currentUser) {
+      document.getElementById('setup-modal').classList.add('hidden');
+      initApp();
+    }
+
+    document.getElementById('btn-finish-setup').onclick = () => {
+      const name = document.getElementById('setup-username').value.trim();
+      if (name) {
+        // Reacción especial para nombres específicos
+        if (name.toLowerCase() === "maybe_jrd") {
+          alert("Que casualidad, justamente la inspiración encontró la obra.");
+        }
+        
+        localStorage.setItem('nxt_user', name);
+        currentUser = name;
+        document.getElementById('setup-modal').classList.add('hidden');
+        initApp();
+      }
+    };
+
+    function initApp() {
+      updateUI();
+      listenToTasks();
+    }
+
+    window.addTask = function() {
+      const input = document.getElementById('task-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const tasksRef = ref(db, 'tasks/' + currentUser);
+      push(tasksRef, {
+        text: text,
+        timestamp: Date.now()
+      });
+      input.value = '';
+    };
+
+    window.completeTask = function(taskId) {
+      const taskRef = ref(db, 'tasks/' + currentUser + '/' + taskId);
+      remove(taskRef).then(() => {
+        coins += 10;
+        localStorage.setItem('nxt_coins', coins);
+        updateUI();
+        showPetAnimation();
+      });
+    };
+
+    function listenToTasks() {
+      const tasksRef = ref(db, 'tasks/' + currentUser);
+      onValue(tasksRef, (snapshot) => {
+        const data = snapshot.val();
+        const list = document.getElementById('tasks-list');
+        list.innerHTML = '';
+        
+        if (data) {
+          Object.keys(data).forEach(id => {
+            const task = data[id];
+            list.innerHTML += `
+              <div class="bg-white p-4 rounded-xl flex items-center justify-between border-2 border-[#3f3b39] shadow-sm">
+                <span class="font-bold text-[#3f3b39]">${task.text}</span>
+                <button onclick="completeTask('${id}')" class="check-btn hover:bg-[#a3be8c]"></button>
+              </div>`;
+          });
+        }
+      });
+    }
+
+    function updateUI() {
+      document.getElementById('coins-display').innerText = coins;
+      document.getElementById('header-name').innerText = currentUser;
+    }
+
+    function showPetAnimation() {
+      const container = document.getElementById('pet-display');
+      const pet = document.createElement('div');
+      pet.className = 'pet-container';
+      pet.style.animation = 'pet-fly 3s linear forwards';
+      pet.innerText = '🐉'; // Mascota de celebración
+      container.appendChild(pet);
+      setTimeout(() => pet.remove(), 3000);
+    }
+
+  </script>
+  <script>lucide.createIcons();</script>
+</body>
+  </html>
