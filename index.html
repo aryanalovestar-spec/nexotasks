@@ -3,216 +3,349 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>NexoTasks | Servidores</title>
+  <title>NexoTasks Pro</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;700&display=swap');
-    body { font-family: 'Crimson Pro', serif; background-color: #fdf6e3; color: #3f3b39; overflow: hidden; }
-    .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(8px); border: 2px solid #3f3b39; }
-    .side-icon.active { @apply border-[#3f3b39] bg-[#88c0d0] text-white; }
-    .nav-bottom.active { @apply opacity-100 scale-110 text-blue-600; }
-    @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
-    .urgent-shake { animation: shake 0.5s infinite; color: #ef4444; }
+    body { font-family: 'Crimson Pro', serif; transition: background 0.5s; overflow: hidden; background-size: cover; background-position: center; background-color: #fdf6e3; }
+    .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 2px solid #3f3b39; border-radius: 20px; }
+    .side-icon.active { background: #88c0d0; color: white; border-color: #3f3b39; }
+    
+    /* Animación de la mascota caminando */
+    @keyframes walk {
+      0% { transform: translateX(-100px) scaleX(1); }
+      49% { transform: translateX(calc(100vw - 100px)) scaleX(1); }
+      50% { transform: translateX(calc(100vw - 100px)) scaleX(-1); }
+      99% { transform: translateX(-100px) scaleX(-1); }
+      100% { transform: translateX(-100px) scaleX(1); }
+    }
+    #active-pet { position: fixed; bottom: 120px; left: 0; font-size: 3rem; animation: walk 20s linear infinite; z-index: 40; pointer-events: none; }
   </style>
 </head>
-<body class="h-full flex flex-col">
+<body id="app-body" class="h-full flex flex-col text-[#3f3b39]">
 
-  <header class="h-14 border-b-2 border-[#3f3b39] flex items-center justify-between px-6 bg-white shrink-0">
-    <div class="flex items-center gap-2 font-bold">0🌕</div>
-    <h1 class="font-bold text-lg">NexoTasks</h1>
-    <button onclick="toggleProfile()" class="p-2 border-2 border-[#3f3b39] rounded-full"><i data-lucide="user"></i></button>
+  <header class="h-16 border-b-2 border-[#3f3b39] flex items-center justify-between px-6 bg-white/90 shrink-0">
+    <div class="flex items-center gap-2 font-bold bg-yellow-100 px-3 py-1 rounded-full border border-yellow-400">
+        <span id="luna-counter">0</span> 🌕
+    </div>
+    <div class="flex gap-2">
+        <button onclick="openStore()" class="p-2 border-2 border-[#3f3b39] rounded-full bg-white text-xl">🐾</button>
+        <button onclick="openProfile()" class="p-2 border-2 border-[#3f3b39] rounded-full bg-white"><i data-lucide="user"></i></button>
+    </div>
   </header>
 
   <div class="flex flex-1 overflow-hidden">
-    <aside class="w-16 border-r-2 border-[#3f3b39] flex flex-col items-center py-4 gap-4 bg-white shrink-0">
-      <button onclick="setCategory('salud')" id="cat-salud" class="p-3 rounded-xl border-2 border-transparent"><i data-lucide="pill"></i></button>
-      <button onclick="setCategory('colegio')" id="cat-colegio" class="p-3 rounded-xl border-2 border-transparent"><i data-lucide="book-open"></i></button>
-      <button onclick="setCategory('hogar')" id="cat-hogar" class="p-3 rounded-xl border-2 border-transparent"><i data-lucide="home"></i></button>
-      <button onclick="setCategory('otros')" id="cat-otros" class="p-3 rounded-xl border-2 border-transparent"><i data-lucide="star"></i></button>
+    <aside class="w-16 border-r-2 border-[#3f3b39] flex flex-col items-center py-6 gap-4 bg-white/90 shrink-0 overflow-y-auto">
+      <button onclick="setCat('salud')" id="c-salud" class="side-icon p-3 border-2 border-transparent rounded-xl"><i data-lucide="pill"></i></button>
+      <button onclick="setCat('colegio')" id="c-colegio" class="side-icon p-3 border-2 border-transparent rounded-xl"><i data-lucide="book-open"></i></button>
+      <button onclick="setCat('hogar')" id="c-hogar" class="side-icon p-3 border-2 border-transparent rounded-xl"><i data-lucide="home"></i></button>
+      <button onclick="setCat('otros')" id="c-otros" class="side-icon p-3 border-2 border-transparent rounded-xl"><i data-lucide="star"></i></button>
       <div class="w-8 h-[2px] bg-[#3f3b39] opacity-20"></div>
-      <button onclick="openWorldMenu()" id="cat-server" class="p-3 rounded-xl border-2 border-transparent text-[#3f3b39]"><i data-lucide="globe-2"></i></button>
+      <button onclick="setCat('servidor')" id="c-servidor" class="side-icon p-3 border-2 border-transparent rounded-xl text-blue-600"><i data-lucide="server"></i></button>
     </aside>
 
-    <main class="flex-1 flex flex-col relative">
-      <div id="tasks-scroll" class="flex-1 overflow-y-auto p-4 space-y-3 pb-32"></div>
+    <main class="flex-1 relative flex flex-col">
+      <div id="task-list" class="flex-1 overflow-y-auto p-4 space-y-3 pb-48"></div>
+      
+      <div id="active-pet" class="hidden"></div>
 
-      <div id="input-area" class="absolute bottom-24 left-4 right-4 glass p-4 rounded-2xl">
-        <input type="text" id="task-input" placeholder="Nueva tarea..." class="w-full bg-transparent border-b border-[#3f3b39] py-1 outline-none font-bold mb-2">
-        <div class="flex justify-between items-center">
-            <input type="datetime-local" id="task-deadline" class="text-[10px] border border-[#3f3b39] p-1">
-            <button onclick="addTask()" class="bg-[#3f3b39] text-white px-3 py-1 rounded font-bold text-[10px]">REGISTRAR</button>
+      <div class="absolute bottom-6 left-4 right-4 glass p-4 shadow-2xl">
+        <input type="text" id="t-text" placeholder="¿Qué hay que hacer?" class="w-full bg-transparent border-b-2 border-[#3f3b39] mb-3 outline-none font-bold">
+        <div class="grid grid-cols-2 gap-2 mb-3">
+            <select id="t-cat" class="bg-white border border-[#3f3b39] rounded p-1 text-xs outline-none">
+                <option value="salud">Salud</option>
+                <option value="colegio">Colegio</option>
+                <option value="hogar">Hogar</option>
+                <option value="otros">Otros</option>
+                <option value="servidor">Servidor Compartido</option>
+            </select>
+            <input type="datetime-local" id="t-date" class="border border-[#3f3b39] rounded p-1 text-[10px] bg-white">
         </div>
+        <button onclick="saveTask()" class="w-full bg-[#3f3b39] text-white py-2 rounded-xl font-bold text-xs uppercase tracking-widest">Registrar Tarea</button>
       </div>
-
-      <nav class="h-20 border-t-2 border-[#3f3b39] bg-white flex justify-around items-center px-2">
-        <button onclick="setTab('pendientes')" id="tab-pendientes" class="nav-bottom active opacity-50 flex flex-col items-center"><i data-lucide="clock"></i><span class="text-[9px] font-bold">PENDIENTES</span></button>
-        <button onclick="setTab('finalizadas')" id="tab-finalizadas" class="nav-bottom opacity-50 flex flex-col items-center"><i data-lucide="check-circle-2"></i><span class="text-[9px] font-bold">FINALIZADAS</span></button>
-        <button onclick="setTab('atrasadas')" id="tab-atrasadas" class="nav-bottom opacity-50 flex flex-col items-center"><span class="text-xl">🐰💢</span><span class="text-[9px] font-bold">ATRASADAS</span></button>
-      </nav>
     </main>
   </div>
 
-  <div id="world-modal" class="fixed inset-0 bg-black/60 z-[200] hidden flex items-center justify-center p-6">
-    <div class="glass w-full max-w-sm rounded-[30px] p-6 space-y-6 bg-white">
-        <div class="flex justify-between items-center">
-            <h2 class="text-xl font-bold">Servidor Shared</h2>
-            <button onclick="closeWorldMenu()"><i data-lucide="x"></i></button>
+  <div id="m-profile" class="fixed inset-0 bg-black/70 z-[100] hidden flex items-center justify-center p-4">
+    <div class="glass w-full max-w-sm p-6 bg-white space-y-6 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between font-bold items-center text-lg">
+            Ajustes de Usuario <button onclick="closeModal('m-profile')"><i data-lucide="x"></i></button>
         </div>
-        <button onclick="createWorld()" class="w-full p-4 border-2 border-[#3f3b39] rounded-2xl flex items-center gap-4 hover:bg-gray-50">
-            <span class="text-3xl">🐰</span>
-            <div class="text-left"><b class="block">Crear Servidor</b><small class="text-gray-500">Genera un código nuevo</small></div>
+        
+        <button class="w-full flex items-center justify-center gap-2 border-2 border-gray-300 p-2 rounded-xl text-sm font-bold bg-gray-50">
+            <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.58c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            Vincular con Google Real
         </button>
-        <div class="p-4 border-2 border-[#3f3b39] rounded-2xl space-y-3">
-            <div class="flex items-center gap-4"><span class="text-3xl">🌏</span><b>Unirse a uno</b></div>
-            <input type="text" id="join-input" placeholder="CÓDIGO" class="w-full border-b-2 border-[#3f3b39] text-center font-bold outline-none uppercase tracking-widest">
-            <button onclick="joinWorld()" class="w-full bg-[#3f3b39] text-white py-2 rounded-xl font-bold text-xs">CONECTAR</button>
+
+        <div class="border-t border-gray-200 pt-4">
+            <p class="text-xs font-bold mb-3 uppercase">Fondo de Pantalla</p>
+            <div class="flex gap-2 mb-3">
+                <input type="color" id="bg-color-picker" class="w-8 h-8 rounded cursor-pointer" onchange="setBgColor(this.value)">
+                <span class="text-xs self-center">Elegir Color</span>
+            </div>
+            <input type="file" id="bg-img-upload" accept="image/*" class="hidden" onchange="setBgImage(event)">
+            <button onclick="document.getElementById('bg-img-upload').click()" class="w-full py-2 border-2 border-[#3f3b39] rounded-lg text-xs font-bold">📷 SUBIR FOTO DEL CELULAR</button>
         </div>
-        <div id="active-world-tag" class="text-center text-[10px] font-bold text-blue-500 uppercase">MODO LOCAL</div>
-        <button onclick="exitWorld()" id="exit-btn" class="hidden w-full text-red-500 text-[10px] font-bold underline">Salir del servidor</button>
+
+        <div class="border-t border-gray-200 pt-4">
+            <p class="text-xs font-bold mb-3 uppercase text-blue-600">Servidor Compartido</p>
+            <input type="text" id="server-name" placeholder="Nombre del Servidor" class="w-full border-b-2 border-[#3f3b39] mb-2 font-bold outline-none text-sm">
+            <button onclick="createServidor()" class="w-full bg-blue-100 border-2 border-blue-400 py-2 rounded-xl text-xs font-bold mb-2">Crear Servidor</button>
+            <div id="server-code-display" class="hidden bg-gray-100 p-2 rounded text-center border border-gray-300">
+                <p class="text-[10px] text-gray-500">Tu código de invitación:</p>
+                <b id="the-code" class="text-lg tracking-widest"></b>
+                <button onclick="copyCode()" class="ml-2 text-[10px] bg-white border border-gray-300 px-2 py-1 rounded">Copiar</button>
+            </div>
+        </div>
+
+        <div class="border-t border-gray-200 pt-4">
+            <button onclick="silenceNotifs()" class="w-full py-2 bg-red-100 text-red-700 border-2 border-red-300 rounded-lg text-xs font-bold flex justify-center gap-2">
+                <i data-lucide="bell-off" class="w-4 h-4"></i> Silenciar Notificaciones (1 Mes)
+            </button>
+            <p id="silence-status" class="text-[10px] text-center mt-2 text-gray-500"></p>
+        </div>
     </div>
   </div>
 
-  <div id="profile-modal" class="fixed inset-0 bg-black/50 z-[200] hidden flex items-center justify-center p-6">
-    <div class="glass w-full max-w-sm rounded-[30px] p-6 space-y-6 bg-white">
-        <div class="flex justify-between items-center"><h2 class="text-xl font-bold">Ajustes</h2><button onclick="toggleProfile()"><i data-lucide="x"></i></button></div>
-        <div class="p-4 border-2 border-[#3f3b39] rounded-2xl bg-[#fdf6e3]">
-            <p class="text-xs font-bold mb-2 uppercase">Sonido Recordatorio</p>
-            <input type="file" id="sound-upload" accept="audio/*" class="hidden">
-            <button onclick="document.getElementById('sound-upload').click()" class="w-full py-2 bg-white border-2 border-[#3f3b39] rounded-lg text-xs font-bold">IMPORTAR AUDIO</button>
-            <button onclick="testSound()" class="w-full mt-2 text-[10px] underline">Probar actual</button>
+  <div id="m-store" class="fixed inset-0 bg-black/70 z-[100] hidden flex items-center justify-center p-4">
+    <div class="glass w-full max-w-sm p-6 bg-white flex flex-col max-h-[80vh]">
+        <div class="flex justify-between font-bold text-lg mb-4 shrink-0">
+            Adopta una Mascota <button onclick="closeModal('m-store')"><i data-lucide="x"></i></button>
         </div>
+        <div id="pet-list" class="flex-1 overflow-y-auto space-y-3 pr-2">
+            </div>
     </div>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, onValue, push, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+  <script>
+    // --- ESTADO INICIAL ---
+    let lunas = parseInt(localStorage.getItem('nx_lunas')) || 0;
+    let currentCat = 'hogar';
+    let tasks = JSON.parse(localStorage.getItem('nx_tasks')) || [];
+    let ownedPets = JSON.parse(localStorage.getItem('nx_owned_pets')) || [];
+    let activePet = localStorage.getItem('nx_active_pet') || null;
+    let bgConfig = JSON.parse(localStorage.getItem('nx_bg')) || { type: 'color', val: '#fdf6e3' };
+    let muteDate = localStorage.getItem('nx_mute_date');
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDPTKgbttL8DbukqHhB8vE-5hEVE6A2v8M",
-      authDomain: "nexotasks.firebaseapp.com",
-      databaseURL: "https://nexotasks-default-rtdb.firebaseio.com",
-      projectId: "nexotasks",
-      storageBucket: "nexotasks.firebasestorage.app",
-      messagingSenderId: "821277921208",
-      appId: "1:821277921208:web:abbc7d0d2855eca671894d"
+    const petsDb = [
+        { id: 'p1', name: 'Gato', emoji: '🐱', cost: 10 },
+        { id: 'p2', name: 'Perro', emoji: '🐶', cost: 20 },
+        { id: 'p3', name: 'Zorro', emoji: '🦊', cost: 30 },
+        { id: 'p4', name: 'Lobo', emoji: '🐺', cost: 40 },
+        { id: 'p5', name: 'Águila', emoji: '🦅', cost: 50 },
+        { id: 'p6', name: 'Gusano', emoji: '🐛', cost: 60 },
+        { id: 'p7', name: 'Unicornio', emoji: '🦄', cost: 70 },
+        { id: 'p8', name: 'Dragón', emoji: '🐉', cost: 80 },
+        { id: 'p9', name: 'Conejo', emoji: '🐰', cost: 90 }
+    ];
+
+    window.onload = () => { 
+        lucide.createIcons(); 
+        updateLunasUI();
+        applyBackground();
+        checkMuteStatus();
+        setCat('hogar'); 
+        if(activePet) spawnPet(activePet);
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    // --- UTILIDADES ---
+    function openProfile() { document.getElementById('m-profile').classList.remove('hidden'); }
+    function openStore() { renderStore(); document.getElementById('m-store').classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+    function updateLunasUI() { document.getElementById('luna-counter').innerText = lunas; }
 
-    let currentTab = 'pendientes';
-    let currentCategory = 'hogar';
-    let activeWorld = localStorage.getItem('nx_active_world') || '';
-    let customSound = localStorage.getItem('custom_sound') || '';
-    const audioPlayer = new Audio();
-
-    window.onload = () => { lucide.createIcons(); setCategory('hogar'); if(activeWorld) syncWorld(); };
-
-    // --- LÓGICA DE SERVIDORES ---
-    window.openWorldMenu = () => document.getElementById('world-modal').classList.remove('hidden');
-    window.closeWorldMenu = () => document.getElementById('world-modal').classList.add('hidden');
-
-    window.createWorld = () => {
-        const code = Math.random().toString(36).substring(2, 7).toUpperCase();
-        activeWorld = code;
-        localStorage.setItem('nx_active_world', code);
-        set(ref(db, `worlds/${code}`), { created: Date.now() });
-        syncWorld();
-        closeWorldMenu();
-    };
-
-    window.joinWorld = () => {
-        const code = document.getElementById('join-input').value.toUpperCase();
-        onValue(ref(db, `worlds/${code}`), (snap) => {
-            if(snap.exists()) {
-                activeWorld = code;
-                localStorage.setItem('nx_active_world', code);
-                syncWorld();
-                closeWorldMenu();
-            } else { alert("Servidor no encontrado"); }
-        }, {onlyOnce: true});
-    };
-
-    window.exitWorld = () => {
-        activeWorld = '';
-        localStorage.removeItem('nx_active_world');
-        location.reload();
-    };
-
-    function syncWorld() {
-        document.getElementById('active-world-tag').innerText = "CONECTADO A: " + activeWorld;
-        document.getElementById('cat-server').classList.add('active');
-        document.getElementById('exit-btn').classList.remove('hidden');
-        loadTasks();
+    // --- FONDOS DE PANTALLA ---
+    function setBgColor(color) {
+        bgConfig = { type: 'color', val: color };
+        localStorage.setItem('nx_bg', JSON.stringify(bgConfig));
+        applyBackground();
+    }
+    function setBgImage(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                bgConfig = { type: 'image', val: e.target.result };
+                localStorage.setItem('nx_bg', JSON.stringify(bgConfig));
+                applyBackground();
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+    function applyBackground() {
+        const body = document.getElementById('app-body');
+        if (bgConfig.type === 'color') {
+            body.style.backgroundImage = 'none';
+            body.style.backgroundColor = bgConfig.val;
+        } else {
+            body.style.backgroundImage = `url(${bgConfig.val})`;
+        }
     }
 
-    // --- TAREAS Y CATEGORÍAS ---
-    window.setCategory = (cat) => {
-        currentCategory = cat;
-        document.querySelectorAll('.side-icon').forEach(el => el.classList.remove('active'));
-        document.getElementById(`cat-${cat}`)?.classList.add('active');
-        loadTasks();
+    // --- NOTIFICACIONES SILENCIADAS ---
+    function silenceNotifs() {
+        const now = Date.now();
+        localStorage.setItem('nx_mute_date', now);
+        muteDate = now;
+        checkMuteStatus();
+        alert("Notificaciones silenciadas por 30 días.");
+    }
+    function checkMuteStatus() {
+        if(!muteDate) return;
+        const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+        const passedMs = Date.now() - parseInt(muteDate);
+        const statusEl = document.getElementById('silence-status');
+        
+        if (passedMs >= thirtyDaysMs) {
+            localStorage.removeItem('nx_mute_date');
+            muteDate = null;
+            statusEl.innerText = "";
+        } else {
+            const daysLeft = Math.ceil((thirtyDaysMs - passedMs) / (1000 * 60 * 60 * 24));
+            statusEl.innerText = `Silenciadas. Faltan ${daysLeft} días para reactivación automática.`;
+        }
+    }
+
+    // --- SERVIDOR COMPARTIDO (UI) ---
+    function createServidor() {
+        const name = document.getElementById('server-name').value || "Mi Servidor";
+        const code = Math.random().toString(36).substring(2, 7).toUpperCase();
+        document.getElementById('the-code').innerText = code;
+        document.getElementById('server-code-display').classList.remove('hidden');
+        document.getElementById('c-servidor').title = name;
+        // Aquí iría la conexión a Firebase Real
+    }
+    function copyCode() {
+        const text = document.getElementById('the-code').innerText;
+        navigator.clipboard.writeText(text);
+        alert("Código copiado: " + text);
+    }
+
+    // --- CATEGORÍAS Y TAREAS ---
+    window.setCat = (c) => {
+        currentCat = c;
+        document.querySelectorAll('.side-icon').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('c-'+c).classList.add('active');
+        // Actualizar el select por defecto
+        document.getElementById('t-cat').value = c;
+        renderTasks();
     };
 
-    window.setTab = (tab) => {
-        currentTab = tab;
-        document.querySelectorAll('.nav-bottom').forEach(el => el.classList.remove('active'));
-        document.getElementById(`tab-${tab}`).classList.add('active');
-        document.getElementById('input-area').style.display = (tab === 'pendientes') ? 'block' : 'none';
-        loadTasks();
+    window.saveTask = () => {
+        const text = document.getElementById('t-text').value;
+        const date = document.getElementById('t-date').value;
+        const cat = document.getElementById('t-cat').value;
+        if(!text || !date) return alert("Por favor completa los datos.");
+        
+        tasks.push({ id: Date.now(), text, date: new Date(date).getTime(), cat, status: 'pendientes' });
+        localStorage.setItem('nx_tasks', JSON.stringify(tasks));
+        
+        document.getElementById('t-text').value = '';
+        renderTasks();
     };
 
-    window.addTask = () => {
-        const text = document.getElementById('task-input').value;
-        const date = document.getElementById('task-deadline').value;
-        if(!text || !date) return;
-        const path = activeWorld ? `worlds/${activeWorld}/tasks` : `local_tasks/${currentCategory}`;
-        push(ref(db, path), { text, deadline: new Date(date).getTime(), status: 'pendientes', category: currentCategory });
-        document.getElementById('task-input').value = '';
+    function renderTasks() {
+        const list = document.getElementById('task-list');
+        list.innerHTML = '';
+        const filtered = tasks.filter(t => t.cat === currentCat && t.status === 'pendientes');
+        
+        filtered.forEach(t => {
+            const div = document.createElement('div');
+            div.className = "glass p-4 bg-white/90 flex justify-between items-center shadow-sm";
+            div.innerHTML = `
+                <div>
+                    <div class="font-bold text-sm">${t.text}</div>
+                    <div class="text-[10px] text-gray-500">${new Date(t.date).toLocaleString()}</div>
+                </div>
+                <button onclick="completeTask(${t.id})" class="p-2 border-2 border-green-500 bg-green-100 text-green-700 rounded-lg"><i data-lucide="check"></i></button>
+            `;
+            list.appendChild(div);
+        });
+        lucide.createIcons();
+    }
+
+    window.completeTask = (id) => {
+        const taskIdx = tasks.findIndex(t => t.id === id);
+        if(taskIdx > -1) {
+            const t = tasks[taskIdx];
+            t.status = 'finalizadas';
+            
+            // Lógica de Economía
+            let reward = 10; // Recompensa base
+            const now = Date.now();
+            const timeDiff = t.date - now;
+            const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+            
+            // Si falta menos de 7 días y la fecha no ha pasado
+            if (timeDiff > 0 && timeDiff <= sevenDaysMs) {
+                reward += 25; // Bono
+                alert("¡Completaste a tiempo! +25 Lunas extra 🌕");
+            }
+            
+            lunas += reward;
+            localStorage.setItem('nx_lunas', lunas);
+            localStorage.setItem('nx_tasks', JSON.stringify(tasks));
+            
+            updateLunasUI();
+            renderTasks();
+        }
     };
 
-    function loadTasks() {
-        const path = activeWorld ? `worlds/${activeWorld}/tasks` : `local_tasks/${currentCategory}`;
-        onValue(ref(db, path), (snap) => {
-            const container = document.getElementById('tasks-scroll');
-            container.innerHTML = '';
-            const data = snap.val();
-            if(!data) return;
-            Object.keys(data).forEach(id => {
-                const task = data[id];
-                const now = Date.now();
-                let status = task.status;
-                if(status === 'pendientes' && now > task.deadline) status = 'atrasadas';
-                if(status !== currentTab) return;
-                if(!activeWorld && task.category !== currentCategory) return;
+    // --- MASCOTAS ---
+    function renderStore() {
+        const list = document.getElementById('pet-list');
+        list.innerHTML = '';
+        petsDb.forEach(pet => {
+            const isOwned = ownedPets.includes(pet.id);
+            const isActive = activePet === pet.emoji;
+            
+            let btnHtml = '';
+            if (isActive) {
+                btnHtml = `<span class="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded">Equipado</span>`;
+            } else if (isOwned) {
+                btnHtml = `<button onclick="equipPet('${pet.emoji}')" class="text-xs bg-blue-100 text-blue-700 font-bold px-3 py-1 border border-blue-400 rounded">Equipar</button>`;
+            } else {
+                const canAfford = lunas >= pet.cost;
+                btnHtml = `<button onclick="buyPet('${pet.id}', ${pet.cost})" class="text-xs ${canAfford ? 'bg-[#3f3b39] text-white' : 'bg-gray-300 text-gray-500'} font-bold px-3 py-1 rounded" ${canAfford ? '' : 'disabled'}>${pet.cost} 🌕</button>`;
+            }
 
-                const div = document.createElement('div');
-                div.className = "glass p-4 rounded-xl bg-white flex justify-between items-center";
-                div.innerHTML = `
-                    <div>
-                        <div class="font-bold text-sm">${task.text}</div>
-                        <div class="text-[8px] opacity-60">${new Date(task.deadline).toLocaleString()}</div>
-                    </div>
-                    ${status === 'pendientes' ? `<button onclick="completeTask('${id}', '${path}')" class="p-2 border-2 border-[#3f3b39] rounded bg-green-100"><i data-lucide="check"></i></button>` : ''}
-                `;
-                container.appendChild(div);
-            });
-            lucide.createIcons();
+            const div = document.createElement('div');
+            div.className = "flex justify-between items-center border-b border-gray-200 pb-2";
+            div.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <span class="text-3xl">${pet.emoji}</span>
+                    <span class="font-bold">${pet.name}</span>
+                </div>
+                ${btnHtml}
+            `;
+            list.appendChild(div);
         });
     }
 
-    window.completeTask = (id, path) => update(ref(db, `${path}/${id}`), { status: 'finalizadas' });
-    window.toggleProfile = () => document.getElementById('profile-modal').classList.toggle('hidden');
+    window.buyPet = (id, cost) => {
+        if (lunas >= cost) {
+            lunas -= cost;
+            ownedPets.push(id);
+            localStorage.setItem('nx_lunas', lunas);
+            localStorage.setItem('nx_owned_pets', JSON.stringify(ownedPets));
+            updateLunasUI();
+            renderStore();
+        }
+    };
 
-    // --- SONIDO ---
-    document.getElementById('sound-upload').addEventListener('change', (e) => {
-        const reader = new FileReader();
-        reader.onload = (ev) => { customSound = ev.target.result; localStorage.setItem('custom_sound', customSound); };
-        reader.readAsDataURL(e.target.files[0]);
-    });
-    window.testSound = () => { if(customSound) { audioPlayer.src = customSound; audioPlayer.play(); } };
+    window.equipPet = (emoji) => {
+        activePet = emoji;
+        localStorage.setItem('nx_active_pet', emoji);
+        spawnPet(emoji);
+        renderStore();
+    };
+
+    function spawnPet(emoji) {
+        const petDiv = document.getElementById('active-pet');
+        petDiv.innerText = emoji;
+        petDiv.classList.remove('hidden');
+    }
 
   </script>
 </body>
