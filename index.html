@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>NexoTasks | Pro</title>
+  <title>NexoTasks | Servidores</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
   <style>
@@ -21,9 +21,7 @@
   <header class="h-14 border-b-2 border-[#3f3b39] flex items-center justify-between px-6 bg-white shrink-0">
     <div class="flex items-center gap-2 font-bold">0🌕</div>
     <h1 class="font-bold text-lg">NexoTasks</h1>
-    <button onclick="toggleProfile()" class="p-2 border-2 border-[#3f3b39] rounded-full bg-white shadow-[2px_2px_0_0_#3f3b39]">
-        <i data-lucide="user" class="w-4 h-4"></i>
-    </button>
+    <button onclick="toggleProfile()" class="p-2 border-2 border-[#3f3b39] rounded-full"><i data-lucide="user"></i></button>
   </header>
 
   <div class="flex flex-1 overflow-hidden">
@@ -32,7 +30,8 @@
       <button onclick="setCategory('colegio')" id="cat-colegio" class="p-3 rounded-xl border-2 border-transparent"><i data-lucide="book-open"></i></button>
       <button onclick="setCategory('hogar')" id="cat-hogar" class="p-3 rounded-xl border-2 border-transparent"><i data-lucide="home"></i></button>
       <button onclick="setCategory('otros')" id="cat-otros" class="p-3 rounded-xl border-2 border-transparent"><i data-lucide="star"></i></button>
-      <button onclick="openWorldMenu()" class="p-3 rounded-xl bg-[#3f3b39] text-white"><i data-lucide="languages"></i></button>
+      <div class="w-8 h-[2px] bg-[#3f3b39] opacity-20"></div>
+      <button onclick="openWorldMenu()" id="cat-server" class="p-3 rounded-xl border-2 border-transparent text-[#3f3b39]"><i data-lucide="globe-2"></i></button>
     </aside>
 
     <main class="flex-1 flex flex-col relative">
@@ -54,30 +53,41 @@
     </main>
   </div>
 
-  <div id="profile-modal" class="fixed inset-0 bg-black/50 z-[200] hidden flex items-center justify-center p-6">
+  <div id="world-modal" class="fixed inset-0 bg-black/60 z-[200] hidden flex items-center justify-center p-6">
     <div class="glass w-full max-w-sm rounded-[30px] p-6 space-y-6 bg-white">
         <div class="flex justify-between items-center">
-            <h2 class="text-xl font-bold">Notificaciones</h2>
-            <button onclick="toggleProfile()"><i data-lucide="x"></i></button>
+            <h2 class="text-xl font-bold">Servidor Shared</h2>
+            <button onclick="closeWorldMenu()"><i data-lucide="x"></i></button>
         </div>
-        
-        <div class="space-y-4">
-            <div class="p-4 border-2 border-[#3f3b39] rounded-2xl bg-[#fdf6e3]">
-                <p class="text-xs font-bold mb-2">SONIDO DE RECORDATORIO (Semana Crítica)</p>
-                <input type="file" id="sound-upload" accept="audio/*" class="hidden">
-                <button onclick="document.getElementById('sound-upload').click()" class="w-full py-2 bg-white border-2 border-[#3f3b39] rounded-lg text-xs font-bold flex items-center justify-center gap-2">
-                    <i data-lucide="upload-cloud"></i> IMPORTAR SONIDO
-                </button>
-                <button onclick="testSound()" class="w-full mt-2 py-1 text-[10px] underline">Probar sonido actual</button>
-            </div>
-            <p class="text-[9px] opacity-70">Las alertas sonarán 5 veces durante la última semana antes del vencimiento.</p>
+        <button onclick="createWorld()" class="w-full p-4 border-2 border-[#3f3b39] rounded-2xl flex items-center gap-4 hover:bg-gray-50">
+            <span class="text-3xl">🐰</span>
+            <div class="text-left"><b class="block">Crear Servidor</b><small class="text-gray-500">Genera un código nuevo</small></div>
+        </button>
+        <div class="p-4 border-2 border-[#3f3b39] rounded-2xl space-y-3">
+            <div class="flex items-center gap-4"><span class="text-3xl">🌏</span><b>Unirse a uno</b></div>
+            <input type="text" id="join-input" placeholder="CÓDIGO" class="w-full border-b-2 border-[#3f3b39] text-center font-bold outline-none uppercase tracking-widest">
+            <button onclick="joinWorld()" class="w-full bg-[#3f3b39] text-white py-2 rounded-xl font-bold text-xs">CONECTAR</button>
+        </div>
+        <div id="active-world-tag" class="text-center text-[10px] font-bold text-blue-500 uppercase">MODO LOCAL</div>
+        <button onclick="exitWorld()" id="exit-btn" class="hidden w-full text-red-500 text-[10px] font-bold underline">Salir del servidor</button>
+    </div>
+  </div>
+
+  <div id="profile-modal" class="fixed inset-0 bg-black/50 z-[200] hidden flex items-center justify-center p-6">
+    <div class="glass w-full max-w-sm rounded-[30px] p-6 space-y-6 bg-white">
+        <div class="flex justify-between items-center"><h2 class="text-xl font-bold">Ajustes</h2><button onclick="toggleProfile()"><i data-lucide="x"></i></button></div>
+        <div class="p-4 border-2 border-[#3f3b39] rounded-2xl bg-[#fdf6e3]">
+            <p class="text-xs font-bold mb-2 uppercase">Sonido Recordatorio</p>
+            <input type="file" id="sound-upload" accept="audio/*" class="hidden">
+            <button onclick="document.getElementById('sound-upload').click()" class="w-full py-2 bg-white border-2 border-[#3f3b39] rounded-lg text-xs font-bold">IMPORTAR AUDIO</button>
+            <button onclick="testSound()" class="w-full mt-2 text-[10px] underline">Probar actual</button>
         </div>
     </div>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, onValue, push, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, set, onValue, push, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDPTKgbttL8DbukqHhB8vE-5hEVE6A2v8M",
@@ -94,105 +104,98 @@
 
     let currentTab = 'pendientes';
     let currentCategory = 'hogar';
-    let customSoundBase64 = localStorage.getItem('custom_sound') || '';
-    const alertAudio = new Audio();
+    let activeWorld = localStorage.getItem('nx_active_world') || '';
+    let customSound = localStorage.getItem('custom_sound') || '';
+    const audioPlayer = new Audio();
 
-    window.onload = () => { lucide.createIcons(); setCategory('hogar'); checkDeadlinesLoop(); };
+    window.onload = () => { lucide.createIcons(); setCategory('hogar'); if(activeWorld) syncWorld(); };
 
-    // --- SISTEMA DE SONIDO ---
-    document.getElementById('sound-upload').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            customSoundBase64 = event.target.result;
-            localStorage.setItem('custom_sound', customSoundBase64);
-            alert("Sonido importado con éxito.");
-        };
-        reader.readAsDataURL(file);
-    });
+    // --- LÓGICA DE SERVIDORES ---
+    window.openWorldMenu = () => document.getElementById('world-modal').classList.remove('hidden');
+    window.closeWorldMenu = () => document.getElementById('world-modal').classList.add('hidden');
 
-    window.testSound = () => {
-        if(!customSoundBase64) return alert("Sube un sonido primero.");
-        alertAudio.src = customSoundBase64;
-        alertAudio.play();
+    window.createWorld = () => {
+        const code = Math.random().toString(36).substring(2, 7).toUpperCase();
+        activeWorld = code;
+        localStorage.setItem('nx_active_world', code);
+        set(ref(db, `worlds/${code}`), { created: Date.now() });
+        syncWorld();
+        closeWorldMenu();
     };
 
-    window.toggleProfile = () => document.getElementById('profile-modal').classList.toggle('hidden');
+    window.joinWorld = () => {
+        const code = document.getElementById('join-input').value.toUpperCase();
+        onValue(ref(db, `worlds/${code}`), (snap) => {
+            if(snap.exists()) {
+                activeWorld = code;
+                localStorage.setItem('nx_active_world', code);
+                syncWorld();
+                closeWorldMenu();
+            } else { alert("Servidor no encontrado"); }
+        }, {onlyOnce: true});
+    };
 
-    // --- LÓGICA DE ALERTAS (7 DÍAS) ---
-    function checkDeadlinesLoop() {
-        setInterval(() => {
-            const now = Date.now();
-            onValue(ref(db, `local_tasks/${currentCategory}`), (snap) => {
-                const tasks = snap.val();
-                if(!tasks) return;
-                Object.values(tasks).forEach(task => {
-                    const timeLeft = task.deadline - now;
-                    const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
+    window.exitWorld = () => {
+        activeWorld = '';
+        localStorage.removeItem('nx_active_world');
+        location.reload();
+    };
 
-                    // Si faltan menos de 7 días y está pendiente
-                    if(timeLeft > 0 && timeLeft <= sevenDaysInMs && task.status === 'pendientes') {
-                        // Lógica para sonar 5 veces (cada 1.4 días aprox)
-                        const lastAlert = task.lastAlert || 0;
-                        if(now - lastAlert > (sevenDaysInMs / 5)) {
-                            playAlert(task.text);
-                            // Aquí se podría actualizar 'lastAlert' en DB para no repetir
-                        }
-                    }
-                });
-            }, {onlyOnce: true});
-        }, 60000); // Revisa cada minuto
+    function syncWorld() {
+        document.getElementById('active-world-tag').innerText = "CONECTADO A: " + activeWorld;
+        document.getElementById('cat-server').classList.add('active');
+        document.getElementById('exit-btn').classList.remove('hidden');
+        loadTasks();
     }
 
-    function playAlert(taskName) {
-        if(customSoundBase64) {
-            alertAudio.src = customSoundBase64;
-            alertAudio.play();
-        }
-        console.log("ALERTA CRÍTICA: " + taskName);
-    }
+    // --- TAREAS Y CATEGORÍAS ---
+    window.setCategory = (cat) => {
+        currentCategory = cat;
+        document.querySelectorAll('.side-icon').forEach(el => el.classList.remove('active'));
+        document.getElementById(`cat-${cat}`)?.classList.add('active');
+        loadTasks();
+    };
 
-    // --- TAREAS ---
+    window.setTab = (tab) => {
+        currentTab = tab;
+        document.querySelectorAll('.nav-bottom').forEach(el => el.classList.remove('active'));
+        document.getElementById(`tab-${tab}`).classList.add('active');
+        document.getElementById('input-area').style.display = (tab === 'pendientes') ? 'block' : 'none';
+        loadTasks();
+    };
+
     window.addTask = () => {
         const text = document.getElementById('task-input').value;
-        const deadlineStr = document.getElementById('task-deadline').value;
-        if(!text || !deadlineStr) return;
-
-        push(ref(db, `local_tasks/${currentCategory}`), {
-            text,
-            deadline: new Date(deadlineStr).getTime(),
-            status: 'pendientes',
-            category: currentCategory
-        });
+        const date = document.getElementById('task-deadline').value;
+        if(!text || !date) return;
+        const path = activeWorld ? `worlds/${activeWorld}/tasks` : `local_tasks/${currentCategory}`;
+        push(ref(db, path), { text, deadline: new Date(date).getTime(), status: 'pendientes', category: currentCategory });
         document.getElementById('task-input').value = '';
     };
 
     function loadTasks() {
-        onValue(ref(db, `local_tasks/${currentCategory}`), (snap) => {
-            const data = snap.val();
+        const path = activeWorld ? `worlds/${activeWorld}/tasks` : `local_tasks/${currentCategory}`;
+        onValue(ref(db, path), (snap) => {
             const container = document.getElementById('tasks-scroll');
             container.innerHTML = '';
+            const data = snap.val();
             if(!data) return;
-
             Object.keys(data).forEach(id => {
                 const task = data[id];
                 const now = Date.now();
-                const timeLeft = task.deadline - now;
                 let status = task.status;
-
                 if(status === 'pendientes' && now > task.deadline) status = 'atrasadas';
                 if(status !== currentTab) return;
-
-                const isUrgent = timeLeft > 0 && timeLeft < (7 * 24 * 60 * 60 * 1000);
+                if(!activeWorld && task.category !== currentCategory) return;
 
                 const div = document.createElement('div');
                 div.className = "glass p-4 rounded-xl bg-white flex justify-between items-center";
                 div.innerHTML = `
-                    <div class="${isUrgent && status === 'pendientes' ? 'urgent-shake' : ''}">
+                    <div>
                         <div class="font-bold text-sm">${task.text}</div>
-                        <div class="text-[8px] opacity-60">Límite: ${new Date(task.deadline).toLocaleString()}</div>
+                        <div class="text-[8px] opacity-60">${new Date(task.deadline).toLocaleString()}</div>
                     </div>
-                    ${status === 'pendientes' ? `<button onclick="completeTask('${id}')" class="w-8 h-8 border-2 border-[#3f3b39] rounded bg-green-200"><i data-lucide="check" class="w-4 h-4 mx-auto"></i></button>` : ''}
+                    ${status === 'pendientes' ? `<button onclick="completeTask('${id}', '${path}')" class="p-2 border-2 border-[#3f3b39] rounded bg-green-100"><i data-lucide="check"></i></button>` : ''}
                 `;
                 container.appendChild(div);
             });
@@ -200,9 +203,16 @@
         });
     }
 
-    window.completeTask = (id) => update(ref(db, `local_tasks/${currentCategory}/${id}`), { status: 'finalizadas' });
-    window.setCategory = (cat) => { currentCategory = cat; loadTasks(); };
-    window.setTab = (tab) => { currentTab = tab; loadTasks(); };
+    window.completeTask = (id, path) => update(ref(db, `${path}/${id}`), { status: 'finalizadas' });
+    window.toggleProfile = () => document.getElementById('profile-modal').classList.toggle('hidden');
+
+    // --- SONIDO ---
+    document.getElementById('sound-upload').addEventListener('change', (e) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => { customSound = ev.target.result; localStorage.setItem('custom_sound', customSound); };
+        reader.readAsDataURL(e.target.files[0]);
+    });
+    window.testSound = () => { if(customSound) { audioPlayer.src = customSound; audioPlayer.play(); } };
 
   </script>
 </body>
